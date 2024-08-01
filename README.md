@@ -1,6 +1,9 @@
 # internet-computer-protocol--icp--development-tools README
 
-This is the README for your extension "internet-computer-protocol--icp--development-tools". After writing up a brief description, we recommend including the following sections.
+Goals:
+- Automatic generation of candid files
+- Stop / restart dfx
+- Run bat tests (maybe)
 
 ## Features
 
