@@ -1,26 +1,33 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import {
+  commands,
+  ExtensionContext,
+  TextDocument,
+  window,
+  workspace,
+} from "vscode";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: ExtensionContext) {
+  window.showInformationMessage("ICP Dev Tools extension is now active!");
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "internet-computer-protocol--icp--development-tools" is now active!');
+  workspace.onDidSaveTextDocument((document: TextDocument) => {
+    if (document.languageId === "rust" && document.uri.scheme === "file") {
+      window.showInformationMessage(`Rust file saved: ${document.fileName}`);
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('internet-computer-protocol--icp--development-tools.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Internet Computer Protocol (ICP) Development Tools!');
-	});
+      const root = workspace.getWorkspaceFolder(document.uri);
+      window.showInformationMessage(`Root: ${JSON.stringify(root)}`);
+    }
+  });
 
-	context.subscriptions.push(disposable);
+  const disposable = commands.registerCommand(
+    "icp-dev-tools.generateCandid",
+    () => {
+      window.showInformationMessage(
+        "Generating candid files for the current project."
+      );
+    }
+  );
+
+  context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}

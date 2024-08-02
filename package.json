@@ -1,23 +1,25 @@
 {
-  "name": "internet-computer-protocol--icp--development-tools",
+  "name": "icp-dev-tools",
   "displayName": "Internet Computer Protocol (ICP) Development Tools",
-  "description": "Candid generation and DFX instance start-up and reloadl.",
+  "description": "Candid generation and DFX instance start-up and reload.",
   "version": "0.0.1",
+  "repository": "https://github.com/vincentes/vsc-icp-dev-tools",
   "engines": {
-    "vscode": "^1.92.0"
+    "vscode": "^1.81.0"
   },
   "categories": [
     "Other"
   ],
   "activationEvents": [
     "onCommand:extension:openMyExtension",
-    "onCommand:extension:useMyExtension"
+    "onCommand:extension:useMyExtension",
+    "workspaceContains:**/dfx.json"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "internet-computer-protocol--icp--development-tools.helloWorld",
+        "command": "icp-dev-tools.generateCandid",
         "title": "Hello World"
       }
     ]
