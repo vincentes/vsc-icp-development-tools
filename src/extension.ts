@@ -5,27 +5,85 @@ import {
   window,
   workspace,
 } from "vscode";
+import * as cp from "child_process";
+import * as path from "path";
 
 const terminalName = "dfx: status";
+
+const execShell = (cmd: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    cp.exec(cmd, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(stdout ? stdout : stderr);
+      }
+    });
+  });
+};
+
+const execShellInTerminal = (cmd: string): void => {
+  let terminal = window.terminals.find((t) => t.name === terminalName);
+  if (!terminal) {
+    terminal = window.createTerminal(terminalName);
+  }
+
+  terminal.show();
+  terminal.sendText(cmd);
+};
+
+async function generateDid(
+  canister: string,
+  workspacePath: string
+): Promise<void> {
+  const canisterRoot = path.join(workspacePath, "src", canister);
+  const cargoToml = path.join(canisterRoot, "Cargo.toml");
+  const targetWasm = path.join(
+    workspacePath,
+    "target",
+    "wasm32-unknown-unknown",
+    "release",
+    `${canister}.wasm`
+  );
+  const outputDid = path.join(canisterRoot, `${canister}.did`);
+
+  try {
+    // Build the Wasm
+    await execShell(
+      `cargo build --manifest-path="${cargoToml}" --target wasm32-unknown-unknown --release --package "${canister}"`
+    );
+
+    // Generate the Candid file
+    await execShell(`candid-extractor "${targetWasm}" > "${outputDid}"`);
+
+    window.showInformationMessage(`Candid generated for ${canister}`);
+  } catch (error) {
+    window.showErrorMessage(`Could not generate the candid files.`);
+    execShellInTerminal(
+      `echo "Error generating Candid for ${canister}: ${error}"`
+    );
+  }
+}
 
 export function activate(context: ExtensionContext) {
   window.showInformationMessage("ICP Dev Tools extension is now active!");
 
-  workspace.onDidSaveTextDocument((document: TextDocument) => {
+  workspace.onDidSaveTextDocument(async (document: TextDocument) => {
     if (document.languageId === "rust" && document.uri.scheme === "file") {
-      window.showInformationMessage(`Rust file saved: ${document.fileName}`);
+      const currWorkspace = workspace.getWorkspaceFolder(document.uri);
 
-      const root = workspace.getWorkspaceFolder(document.uri);
-      window.showInformationMessage(`Root: ${JSON.stringify(root)}`);
+      if (!currWorkspace) {
+        window.showErrorMessage("Candid generation: No workspace folder found");
+        return;
+      }
 
-      const exists = window.terminals.find(
-        (terminal) => terminal.name === terminalName
-      );
+      const workspacePath = currWorkspace.uri.fsPath;
 
-      if (exists) {
-        window.showInformationMessage(`Terminal exists: ${terminalName}`);
-      } else {
-        const terminal = window.createTerminal(terminalName);
+      // Define your canisters here
+      const CANISTERS = ["account"]; // Add more canisters as needed
+
+      for (const canister of CANISTERS) {
+        await generateDid(canister, workspacePath);
       }
     }
   });
