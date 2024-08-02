@@ -1,14 +1,26 @@
 import {
   commands,
   ExtensionContext,
+  StatusBarAlignment,
+  StatusBarItem,
   TextDocument,
   window,
   workspace,
 } from "vscode";
 import * as cp from "child_process";
 import * as path from "path";
+import * as fs from "fs";
 
 const terminalName = "dfx: status";
+
+let statusBarItem: StatusBarItem;
+
+function createStatusBarItem() {
+  statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
+  statusBarItem.text = "$(sync~spin) Generating candid...";
+  statusBarItem.tooltip = "ICP Dev Tools: Generating candid files";
+  statusBarItem.hide();
+}
 
 const execShell = (cmd: string): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -46,14 +58,33 @@ async function cargoBuild(
     return true;
   } catch (error) {
     // We are not going to do anything with the error here, it's the Rust extension's job to show it
+    window.showErrorMessage(`Could not build the canister ${canister}`);
     return false;
   }
+}
+
+function findCanisters(workspacePath: string): string[] {
+  const srcPath = path.join(workspacePath, "src");
+  if (!fs.existsSync(srcPath)) {
+    return [];
+  }
+
+  return fs
+    .readdirSync(srcPath, { withFileTypes: true })
+    .filter((dirent) => dirent.isDirectory())
+    .filter((dirent) => {
+      const cargoTomlPath = path.join(srcPath, dirent.name, "Cargo.toml");
+      return fs.existsSync(cargoTomlPath);
+    })
+    .map((dirent) => dirent.name);
 }
 
 async function generateDid(
   canister: string,
   workspacePath: string
 ): Promise<void> {
+  statusBarItem.show();
+
   const targetWasm = path.join(
     workspacePath,
     "target",
@@ -61,6 +92,7 @@ async function generateDid(
     "release",
     `${canister}.wasm`
   );
+
   const outputDid = path.join(
     workspacePath,
     "src",
@@ -71,17 +103,20 @@ async function generateDid(
   try {
     // Generate the Candid file
     await execShell(`candid-extractor "${targetWasm}" > "${outputDid}"`);
-    window.showInformationMessage(`Candid generated for ${canister}`);
   } catch (error) {
     window.showErrorMessage(`Could not generate the candid files.`);
     execShellInTerminal(
       `echo "Error generating Candid for ${canister}: ${error}\n\n\nCould not generate the candid files. This is likely due to an issue with candid-extractor. Please check the terminal for more information."`
     );
+  } finally {
+    statusBarItem.hide();
   }
 }
 
 export function activate(context: ExtensionContext) {
   window.showInformationMessage("ICP Dev Tools extension is now active!");
+
+  createStatusBarItem();
 
   workspace.onDidSaveTextDocument(async (document: TextDocument) => {
     if (document.languageId === "rust" && document.uri.scheme === "file") {
@@ -94,7 +129,16 @@ export function activate(context: ExtensionContext) {
 
       const workspacePath = currWorkspace.uri.fsPath;
 
-      const CANISTERS = ["account"];
+      const CANISTERS = findCanisters(workspacePath);
+
+      if (CANISTERS.length === 0) {
+        window.showWarningMessage("No canisters found in the workspace.");
+        return;
+      } else {
+        window.showInformationMessage(
+          `Found ${CANISTERS.length} canisters in the workspace.`
+        );
+      }
 
       for (const canister of CANISTERS) {
         const buildSucceeded = await cargoBuild(canister, workspacePath);
