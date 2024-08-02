@@ -6,6 +6,8 @@ import {
   workspace,
 } from "vscode";
 
+const terminalName = "dfx: status";
+
 export function activate(context: ExtensionContext) {
   window.showInformationMessage("ICP Dev Tools extension is now active!");
 
@@ -15,6 +17,16 @@ export function activate(context: ExtensionContext) {
 
       const root = workspace.getWorkspaceFolder(document.uri);
       window.showInformationMessage(`Root: ${JSON.stringify(root)}`);
+
+      const exists = window.terminals.find(
+        (terminal) => terminal.name === terminalName
+      );
+
+      if (exists) {
+        window.showInformationMessage(`Terminal exists: ${terminalName}`);
+      } else {
+        const terminal = window.createTerminal(terminalName);
+      }
     }
   });
 
