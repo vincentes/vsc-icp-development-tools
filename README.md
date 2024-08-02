@@ -1,5 +1,5 @@
 # Polysign Development Tools
-Developing on the ICP blockchain can be difficult. This extension 
+Developing on the ICP blockchain can be difficult. This extension improves the DevExp.
 
 ## Features
 
