@@ -32,12 +32,28 @@ const execShellInTerminal = (cmd: string): void => {
   terminal.sendText(cmd);
 };
 
+async function cargoBuild(
+  canister: string,
+  workspacePath: string
+): Promise<boolean> {
+  const canisterRoot = path.join(workspacePath, "src", canister);
+  const cargoToml = path.join(canisterRoot, "Cargo.toml");
+
+  try {
+    await execShell(
+      `cargo build --manifest-path="${cargoToml}" --target wasm32-unknown-unknown --release --package "${canister}"`
+    );
+    return true;
+  } catch (error) {
+    // We are not going to do anything with the error here, it's the Rust extension's job to show it
+    return false;
+  }
+}
+
 async function generateDid(
   canister: string,
   workspacePath: string
 ): Promise<void> {
-  const canisterRoot = path.join(workspacePath, "src", canister);
-  const cargoToml = path.join(canisterRoot, "Cargo.toml");
   const targetWasm = path.join(
     workspacePath,
     "target",
@@ -45,22 +61,21 @@ async function generateDid(
     "release",
     `${canister}.wasm`
   );
-  const outputDid = path.join(canisterRoot, `${canister}.did`);
+  const outputDid = path.join(
+    workspacePath,
+    "src",
+    canister,
+    `${canister}.did`
+  );
 
   try {
-    // Build the Wasm
-    await execShell(
-      `cargo build --manifest-path="${cargoToml}" --target wasm32-unknown-unknown --release --package "${canister}"`
-    );
-
     // Generate the Candid file
     await execShell(`candid-extractor "${targetWasm}" > "${outputDid}"`);
-
     window.showInformationMessage(`Candid generated for ${canister}`);
   } catch (error) {
     window.showErrorMessage(`Could not generate the candid files.`);
     execShellInTerminal(
-      `echo "Error generating Candid for ${canister}: ${error}"`
+      `echo "Error generating Candid for ${canister}: ${error}\n\n\nCould not generate the candid files. This is likely due to an issue with candid-extractor. Please check the terminal for more information."`
     );
   }
 }
@@ -79,11 +94,13 @@ export function activate(context: ExtensionContext) {
 
       const workspacePath = currWorkspace.uri.fsPath;
 
-      // Define your canisters here
-      const CANISTERS = ["account"]; // Add more canisters as needed
+      const CANISTERS = ["account"];
 
       for (const canister of CANISTERS) {
-        await generateDid(canister, workspacePath);
+        const buildSucceeded = await cargoBuild(canister, workspacePath);
+        if (buildSucceeded) {
+          await generateDid(canister, workspacePath);
+        }
       }
     }
   });
