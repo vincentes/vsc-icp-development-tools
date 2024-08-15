@@ -58,7 +58,9 @@ async function cargoBuild(
     return true;
   } catch (error) {
     // We are not going to do anything with the error here, it's the Rust extension's job to show it
-    window.showErrorMessage(`Could not build the canister ${canister}`);
+    window.showErrorMessage(
+      `Could not build the canister ${canister}\n\n${error}`
+    );
     return false;
   }
 }
