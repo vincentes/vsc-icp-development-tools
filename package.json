@@ -2,7 +2,7 @@
   "name": "polysign-tools",
   "displayName": "Internet Computer Developer Tools",
   "description": "Candid generation and DFX build on save.",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "repository": "https://github.com/vincentes/vsc-icp-dev-tools",
   "engines": {
     "vscode": "^1.81.0"
