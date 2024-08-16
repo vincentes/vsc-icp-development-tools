@@ -17,8 +17,10 @@ let statusBarItem: StatusBarItem;
 
 function createStatusBarItem() {
   statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
-  statusBarItem.text = "$(sync~spin) Generating candid...";
-  statusBarItem.tooltip = "ICP Dev Tools: Generating candid files";
+  statusBarItem.text =
+    "$(sync~spin) Generating candid and building canisters...";
+  statusBarItem.tooltip =
+    "ICP Dev Tools: Generating candid and building canisters";
   statusBarItem.hide();
 }
 
@@ -79,6 +81,21 @@ function findCanisters(workspacePath: string): string[] {
       return fs.existsSync(cargoTomlPath);
     })
     .map((dirent) => dirent.name);
+}
+
+async function dfxBuild(workspacePath: string): Promise<void> {
+  statusBarItem.show();
+
+  try {
+    await execShell(`cd ${workspacePath} && dfx build`);
+  } catch (error) {
+    window.showErrorMessage(`Could not build using DFX.`);
+    execShellInTerminal(
+      `echo "Error building the project: ${error}\n\n\nCould not build the project. This is likely due to an issue with dfx. Please check the terminal for more information."`
+    );
+  } finally {
+    statusBarItem.hide();
+  }
 }
 
 async function generateDid(
@@ -148,6 +165,8 @@ export function activate(context: ExtensionContext) {
           await generateDid(canister, workspacePath);
         }
       }
+
+      await dfxBuild(workspacePath);
     }
   });
 
