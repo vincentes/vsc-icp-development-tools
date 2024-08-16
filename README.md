@@ -4,6 +4,7 @@ Developing on the ICP blockchain can be difficult. This extension improves the D
 ## Features
 
 - Automatic generation of candid files (done)
+- Automatic build (dfx build) of canisters (done) 
 - Stop / restart dfx (coming soon)
 - Run bat tests (maybe)
 
