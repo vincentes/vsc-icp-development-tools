@@ -90,9 +90,6 @@ async function dfxBuild(workspacePath: string): Promise<void> {
     await execShell(`cd ${workspacePath} && dfx build`);
   } catch (error) {
     window.showErrorMessage(`Could not build using DFX.`);
-    execShellInTerminal(
-      `echo "Error building the project: ${error}\n\n\nCould not build the project. This is likely due to an issue with dfx. Please check the terminal for more information."`
-    );
   } finally {
     statusBarItem.hide();
   }
@@ -124,9 +121,6 @@ async function generateDid(
     await execShell(`candid-extractor "${targetWasm}" > "${outputDid}"`);
   } catch (error) {
     window.showErrorMessage(`Could not generate the candid files.`);
-    execShellInTerminal(
-      `echo "Error generating Candid for ${canister}: ${error}\n\n\nCould not generate the candid files. This is likely due to an issue with candid-extractor. Please check the terminal for more information."`
-    );
   } finally {
     statusBarItem.hide();
   }
