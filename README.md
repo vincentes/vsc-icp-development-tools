@@ -10,7 +10,6 @@ Automatic candid generation and `dfx build` on save. Intended for ICP projects w
 ## Requirements
 - Rust extensions for VSC
 
-#
 ## Release Notes
 
 Users appreciate release notes as you update your extension.
