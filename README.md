@@ -1,21 +1,16 @@
 # Polysign Development Tools
-Developing on the ICP blockchain can be difficult. This extension improves the DevExp.
+Automatic candid generation and `dfx build` on save. Intended for ICP projects written in Rust.
 
 ## Features
 
-- Automatic generation of candid files (done)
-- Automatic build (dfx build) of canisters (done) 
+- Automatic generation of candid files 
+- Automatic build of canisters
 - Stop / restart dfx (coming soon)
-- Run bat tests (maybe)
 
 ## Requirements
-- Rust extensions for cargo compilation
+- Rust extensions for VSC
 
-Note: If you do not have a Rust extension for automatic cargo checking the project, then **this extension will fail to generate candid files**.
-
-## Known Issues
-None yet. Extension is basic for now.
-
+#
 ## Release Notes
 
 Users appreciate release notes as you update your extension.
@@ -26,12 +21,5 @@ Added automatic candid generation when saving Rust files.
 ### 0.0.2
 Incorporated the Polysign logo.
 
----
-
-## Tips
-
-## Working with Rust
-
-* Make sure you follow our standardized Rust development environment. (coming soon)
-
-**Enjoy!**
+### 0.0.8
+Added automatic `dfx build` on save. 
