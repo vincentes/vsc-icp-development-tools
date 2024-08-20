@@ -59,10 +59,6 @@ async function cargoBuild(
     );
     return true;
   } catch (error) {
-    // We are not going to do anything with the error here, it's the Rust extension's job to show it
-    window.showErrorMessage(
-      `Could not build the canister ${canister}\n\n${error}`
-    );
     return false;
   }
 }
@@ -89,7 +85,7 @@ async function dfxBuild(workspacePath: string): Promise<void> {
   try {
     await execShell(`cd ${workspacePath} && dfx build`);
   } catch (error) {
-    window.showErrorMessage(`Could not build using DFX.`);
+    // TODO: Log
   } finally {
     statusBarItem.hide();
   }
@@ -120,7 +116,7 @@ async function generateDid(
     // Generate the Candid file
     await execShell(`candid-extractor "${targetWasm}" > "${outputDid}"`);
   } catch (error) {
-    window.showErrorMessage(`Could not generate the candid files.`);
+    // TODO: Log
   } finally {
     statusBarItem.hide();
   }
