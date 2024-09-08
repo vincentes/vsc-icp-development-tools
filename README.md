@@ -2,6 +2,11 @@
 
 Automatic candid generation and `dfx build` on save for Internet Computer Protocol (ICP) projects written in Rust.
 
+Do you hate having to run obscure CLI commands in order for your candid files to be generated? Personally, I hated it so I created an extension to circumvent this challenge. After installing this extension, `candid-extractor` will be called automatically on every save done in a Rust canister file. Here's my honest take: You need this for development on ICP. I haven't found a better solution, if you do, please let me know -- I'm eager to hear about it.
+
+## When to **NOT** use this extension?
+I do not recommend using this extension for large ICP canister projects. The rust-analyzer is slow and `dfx build` is also a slowpoke. Therefore, combinining low performance of these two with large files and multiple canister projects (e.g an ICP multirepo with frontend, backend, *and more*) will bust your RAM and freeze Visual Studio Code. Not good.   
+
 ## Disclaimer
 
 This extension is currently under development and is specifically designed for Rust-based ICP projects. Use with caution in production environments.
