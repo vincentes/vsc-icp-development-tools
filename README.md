@@ -9,6 +9,8 @@ This extension is currently under development and is specifically designed for R
 **For this extension to work, one must first install the candid-extractor CLI plugin**
 ``cargo install candid-extractor``
 
+Please report any issues in the extension's [Github repository](https://github.com/vincentes/vsc-icp-development-tools).
+
 ## Features
 
 - Automatic generation of candid files 
