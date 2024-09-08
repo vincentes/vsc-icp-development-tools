@@ -6,6 +6,9 @@ Automatic candid generation and `dfx build` on save for Internet Computer Protoc
 
 This extension is currently under development and is specifically designed for Rust-based ICP projects. Use with caution in production environments.
 
+**For this extension to work, one must first install the candid-extractor CLI plugin**
+``https://crates.io/crates/candid-extractor``
+
 ## Features
 
 - Automatic generation of candid files 
@@ -23,8 +26,8 @@ This extension is currently under development and is specifically designed for R
 ### 0.0.8
 - Added automatic `dfx build` on save
 
-### 0.0.2
-- Incorporated the Polysign logo
+### 0.0.6
+- Incorporated the ICP logo
 
 ### 0.0.1
 - Added automatic candid generation when saving Rust files
