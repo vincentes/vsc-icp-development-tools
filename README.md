@@ -1,4 +1,4 @@
-# ICP Development Tools (Rust)
+# ICP Rust Development Tools 
 
 Automatic candid generation and `dfx build` on save for Internet Computer Protocol (ICP) projects written in Rust.
 
