@@ -3,7 +3,6 @@ import {
   ExtensionContext,
   StatusBarAlignment,
   StatusBarItem,
-  TextDocument,
   window,
   workspace,
 } from "vscode";
@@ -17,11 +16,9 @@ let statusBarItem: StatusBarItem;
 
 function createStatusBarItem() {
   statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
-  statusBarItem.text =
-    "$(sync~spin) Generating candid and building canisters...";
-  statusBarItem.tooltip =
-    "ICP Dev Tools: Generating candid and building canisters";
-  statusBarItem.hide();
+  statusBarItem.text = "$(sync~spin) ICP Dev Tools";
+  statusBarItem.tooltip = "ICP Dev Tools";
+  statusBarItem.show();
 }
 
 const execShell = (cmd: string): Promise<string> => {
@@ -59,6 +56,7 @@ async function cargoBuild(
     );
     return true;
   } catch (error) {
+    window.showErrorMessage(`Failed to build ${canister}: ${error}`);
     return false;
   }
 }
@@ -80,14 +78,16 @@ function findCanisters(workspacePath: string): string[] {
 }
 
 async function dfxBuild(workspacePath: string): Promise<void> {
+  statusBarItem.text = "$(sync~spin) Building canisters...";
   statusBarItem.show();
 
   try {
     await execShell(`cd ${workspacePath} && dfx build`);
+    window.showInformationMessage("DFX build completed successfully.");
   } catch (error) {
-    // TODO: Log
+    window.showErrorMessage(`DFX build failed: ${error}`);
   } finally {
-    statusBarItem.hide();
+    statusBarItem.text = "$(sync) ICP Dev Tools";
   }
 }
 
@@ -95,6 +95,7 @@ async function generateDid(
   canister: string,
   workspacePath: string
 ): Promise<void> {
+  statusBarItem.text = `$(sync~spin) Generating Candid for ${canister}...`;
   statusBarItem.show();
 
   const targetWasm = path.join(
@@ -113,12 +114,14 @@ async function generateDid(
   );
 
   try {
-    // Generate the Candid file
     await execShell(`candid-extractor "${targetWasm}" > "${outputDid}"`);
+    window.showInformationMessage(`Candid generated for ${canister}.`);
   } catch (error) {
-    // TODO: Log
+    window.showErrorMessage(
+      `Failed to generate Candid for ${canister}: ${error}`
+    );
   } finally {
-    statusBarItem.hide();
+    statusBarItem.text = "$(sync) ICP Dev Tools";
   }
 }
 
@@ -127,26 +130,21 @@ export function activate(context: ExtensionContext) {
 
   createStatusBarItem();
 
-  workspace.onDidSaveTextDocument(async (document: TextDocument) => {
-    if (document.languageId === "rust" && document.uri.scheme === "file") {
-      const currWorkspace = workspace.getWorkspaceFolder(document.uri);
-
-      if (!currWorkspace) {
-        window.showErrorMessage("Candid generation: No workspace folder found");
+  const generateCandidCommand = commands.registerCommand(
+    "icp-dev-tools.generateCandid",
+    async () => {
+      const workspaceFolders = workspace.workspaceFolders;
+      if (!workspaceFolders) {
+        window.showErrorMessage("No workspace folder found");
         return;
       }
 
-      const workspacePath = currWorkspace.uri.fsPath;
-
+      const workspacePath = workspaceFolders[0].uri.fsPath;
       const CANISTERS = findCanisters(workspacePath);
 
       if (CANISTERS.length === 0) {
         window.showWarningMessage("No canisters found in the workspace.");
         return;
-      } else {
-        window.showInformationMessage(
-          `Found ${CANISTERS.length} canisters in the workspace.`
-        );
       }
 
       for (const canister of CANISTERS) {
@@ -155,21 +153,36 @@ export function activate(context: ExtensionContext) {
           await generateDid(canister, workspacePath);
         }
       }
-
-      await dfxBuild(workspacePath);
-    }
-  });
-
-  const disposable = commands.registerCommand(
-    "icp-dev-tools.generateCandid",
-    () => {
-      window.showInformationMessage(
-        "Generating candid files for the current project."
-      );
     }
   );
 
-  context.subscriptions.push(disposable);
+  const buildCommand = commands.registerCommand(
+    "icp-dev-tools.build",
+    async () => {
+      const workspaceFolders = workspace.workspaceFolders;
+      if (!workspaceFolders) {
+        window.showErrorMessage("No workspace folder found");
+        return;
+      }
+
+      const workspacePath = workspaceFolders[0].uri.fsPath;
+      await dfxBuild(workspacePath);
+    }
+  );
+
+  const buildAndGenerateCommand = commands.registerCommand(
+    "icp-dev-tools.buildAndGenerate",
+    async () => {
+      await commands.executeCommand("icp-dev-tools.generateCandid");
+      await commands.executeCommand("icp-dev-tools.build");
+    }
+  );
+
+  context.subscriptions.push(
+    generateCandidCommand,
+    buildCommand,
+    buildAndGenerateCommand
+  );
 }
 
 export function deactivate() {}
